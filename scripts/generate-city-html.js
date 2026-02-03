@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import fetch from "node-fetch";
 import { fileURLToPath } from "url";
+import { CITY_SEO } from "./seo.config.js"; // ✅ SEO CONFIG IMPORT
 
 /* ---------------- FIX __dirname (ESM) ---------------- */
 const __filename = fileURLToPath(import.meta.url);
@@ -57,7 +58,6 @@ const createHTML = ({ title, description, canonical, h1 }) => `
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
-    /* ✅ SEO content visible in source, hidden in UI */
     .seo-hidden {
       position: absolute;
       left: -9999px;
@@ -71,7 +71,7 @@ const createHTML = ({ title, description, canonical, h1 }) => `
 </head>
 
 <body>
-  <!-- ✅ STATIC SEO CONTENT (VIEW SOURCE ONLY) -->
+  <!-- ✅ STATIC SEO CONTENT -->
   <h1 class="seo-hidden">${escapeHTML(h1)}</h1>
   <p class="seo-hidden">${escapeHTML(description)}</p>
 
@@ -82,7 +82,6 @@ const createHTML = ({ title, description, canonical, h1 }) => `
 </body>
 </html>
 `;
-
 
 /* ---------------- MAIN FUNCTION ---------------- */
 async function generateCityPages() {
@@ -112,15 +111,23 @@ async function generateCityPages() {
     const cityDir = path.join(CITY_PATH, slug);
     fs.mkdirSync(cityDir, { recursive: true });
 
+    /* ---------------- SEO LOGIC (OPTION 2) ---------------- */
+    const seo = CITY_SEO[slug] || {};
+
     const title =
-      city.heading || `Call Girls in ${city.mainCity}`;
+      seo.title ||
+      city.heading ||
+      `Call Girls in ${city.mainCity}`;
 
     const description =
+      seo.description ||
       city.subDescription ||
       `Book premium call girls in ${city.mainCity}. 24/7 VIP escort service.`;
 
     const h1 =
-      city.heading || `Top ${city.mainCity} Call Girls Agency`;
+      seo.h1 ||
+      city.heading ||
+      `Top ${city.mainCity} Call Girls Agency`;
 
     const canonical = `https://girlswithwine.com/city/${slug}`;
 
@@ -130,7 +137,7 @@ async function generateCityPages() {
         title,
         description,
         canonical,
-        h1, // ✅ FIXED: h1 passed correctly
+        h1
       })
     );
 
