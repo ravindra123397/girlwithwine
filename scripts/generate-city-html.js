@@ -1,16 +1,13 @@
 import fs from "fs";
 import path from "path";
-import fetch from "node-fetch";
 import { fileURLToPath } from "url";
-import { CITY_SEO } from "./seo.config.js"; // ✅ SEO CONFIG IMPORT
+import { CITY_SEO } from "./seo.config.js"; // ✅ SEO CONFIG
 
 /* ---------------- FIX __dirname (ESM) ---------------- */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* ---------------- ENV BASED DIST PATH ---------------- */
-// Local  → dist/
-// Server → /home/USERNAME/public_html
 const DIST_PATH =
   process.env.NODE_ENV === "production"
     ? "/home/USERNAME/public_html"
@@ -71,11 +68,9 @@ const createHTML = ({ title, description, canonical, h1 }) => `
 </head>
 
 <body>
-  <!-- ✅ STATIC SEO CONTENT -->
   <h1 class="seo-hidden">${escapeHTML(h1)}</h1>
   <p class="seo-hidden">${escapeHTML(description)}</p>
 
-  <!-- ✅ REACT UI -->
   <div id="root"></div>
 
   <script type="module" src="/assets/${jsFile}"></script>
@@ -87,6 +82,7 @@ const createHTML = ({ title, description, canonical, h1 }) => `
 async function generateCityPages() {
   console.log("📦 Using DIST PATH:", DIST_PATH);
 
+  // ✅ BUILT-IN FETCH (Node 18+)
   const res = await fetch("https://api.girlswithwine.in/api/cities/list");
   const cities = await res.json();
 
@@ -111,7 +107,6 @@ async function generateCityPages() {
     const cityDir = path.join(CITY_PATH, slug);
     fs.mkdirSync(cityDir, { recursive: true });
 
-    /* ---------------- SEO LOGIC (OPTION 2) ---------------- */
     const seo = CITY_SEO[slug] || {};
 
     const title =
@@ -133,12 +128,7 @@ async function generateCityPages() {
 
     fs.writeFileSync(
       path.join(cityDir, "index.html"),
-      createHTML({
-        title,
-        description,
-        canonical,
-        h1
-      })
+      createHTML({ title, description, canonical, h1 })
     );
 
     console.log(`✅ Generated: /city/${slug}/index.html`);
